@@ -103,35 +103,39 @@ function get_games() {
 		$args     = array_merge( $defaults, $args );
 
 		$transient_hash = md5( implode( '', $args ) );
+		if ( ! $result = get_transient( $transient_hash ) ) {
 
-		if ( isset( $args['ids'] ) && is_array( $args['ids'] ) ) {
-			$args['ids'] = implode( ',', array_map( 'intval', $args['ids'] ) );
-			unset( $args['start'], $args['end'] );
+			if ( isset( $args['ids'] ) && is_array( $args['ids'] ) ) {
+				$args['ids'] = implode( ',', array_map( 'intval', $args['ids'] ) );
+				unset( $args['start'], $args['end'] );
+			}
+
+			if ( isset( $args['sr_ids'] ) && is_array( $args['sr_ids'] ) ) {
+				$args['sr_ids'] = implode( ',', array_map( 'intval', $args['sr_ids'] ) );
+				unset( $args['start'], $args['end'] );
+			}
+
+			$request = new \WP_Http();
+			$result  = $request->post( $var['api_url'], array(
+				'sslverify' => false,
+				'headers'   => $headers,
+				'body'      => $args
+			) );
+
+			if ( ! is_wp_error( $result ) && $result['response']['code'] === 200 ) {
+				$result = json_decode( $result['body'], true );
+			}
+
+			if ( ! $result || is_wp_error( $result ) ) {
+				$result = array();
+			}
+
+			set_transient( $transient_hash, $result, HOUR_IN_SECONDS );
 		}
 
-		if ( isset( $args['sr_ids'] ) && is_array( $args['sr_ids'] ) ) {
-			$args['sr_ids'] = implode( ',', array_map( 'intval', $args['sr_ids'] ) );
-			unset( $args['start'], $args['end'] );
-		}
-
-		$request       = new \WP_Http();
-		$retrievedData = $request->post( $var['api_url'], array(
-			'sslverify' => false,
-			'headers'   => $headers,
-			'body'      => $args
-		) );
-
-		if ( ! is_wp_error( $retrievedData ) && $retrievedData['response']['code'] === 200 ) {
-			$retrievedData = json_decode( $retrievedData['body'], true );
-		}
-
-		if ( ! $retrievedData || is_wp_error( $retrievedData ) ) {
-			$retrievedData = array();
-		}
-
-		wp_send_json( $retrievedData );
+		wp_send_json( $result );
 	}
-	wp_send_json( array('post' => $_POST, 'get' => $_GET,) );
+	wp_send_json( array( 'post' => $_POST, 'get' => $_GET, ) );
 }
 
 add_action( 'wp_ajax_' . __NAMESPACE__ . '-get_games', __NAMESPACE__ . '\get_games' );
