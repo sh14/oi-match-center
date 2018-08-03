@@ -1,6 +1,7 @@
 <?php
 /*
  * Plugin Name: Oi Match Center
+ * Plugin URI: https://github.com/sh14/oi-match-center
  * Description: Плагин для получения и вывода информации об игре с сайта odds.ru
  * Author: Isaenko Alexey
  * Version: 1.0
@@ -25,8 +26,8 @@ function vars() {
 		'params'      => array( // параметры ссылки для получения таблички
 			'embed',
 		),
-		'api_url'     => MATCHCENTER_API_URL, // api url
-		'credentials' => MATCHCENTER_CREDENTIALS, // данные для доступа к api
+		'api_url'     => MATCHCENTER_API_URL, // полный url на api
+		'credentials' => MATCHCENTER_CREDENTIALS, // данные для доступа к api в формате 'login:password'
 		'start'       => '-2 week', // диапазон проведения игр, начало и конец
 		'end'         => '+3 month',
 		'status'      => 'all', // статус игр(завершены/не завершены)
